@@ -8,6 +8,11 @@ namespace api.Mappers
     {
         public static CommentDto ToCommentDto(this Comment commentModel)
         {
+           if(commentModel == null)
+           {
+                throw new ArgumentNullException(nameof(commentModel), "Comment model cannot be null");
+           }
+
             return new CommentDto
             {
                 Id = commentModel.Id,
