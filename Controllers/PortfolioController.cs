@@ -3,6 +3,7 @@ using api.Extensions;
 using api.Interfaces;
 using api.Models;
 using api.Repository;
+using api.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,20 +18,22 @@ namespace api.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly IStockRepository _stockRepository;
         private readonly IPortfolioRepository _portfolioRepository;
+        private readonly IUserService _userService;
 
-        public PortfolioController(UserManager<AppUser> userManager, IStockRepository stockRepository, IPortfolioRepository portfolioRepository)
+
+        public PortfolioController(UserManager<AppUser> userManager, IStockRepository stockRepository, IPortfolioRepository portfolioRepository, IUserService userService)
         {
             _userManager = userManager;
             _stockRepository = stockRepository;
             _portfolioRepository = portfolioRepository;
+            _userService = userService;
         }
 
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> GetUserPortfolio()
         {
-            var username = User.GetUserName();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userService.GetCurrentUserAsync();
             var userPortfolio =  await _portfolioRepository.GetUserPortfolio(appUser);
             return Ok(userPortfolio);
         }
@@ -39,8 +42,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> AddPortfolio(string symbol)
         {
-            var username = User.GetUserName();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userService.GetCurrentUserAsync();
             var stock =  await _stockRepository.GetBySymbolAsync(symbol);
             
             if(stock == null) return BadRequest("Stock not found");
@@ -71,8 +73,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> DeletePortfolio(string symbol)
         {
-            var username = User.GetUserName();
-            var appUser = await _userManager.FindByNameAsync(username); 
+            var appUser = await _userService.GetCurrentUserAsync();
 
             var userPortfolio = await _portfolioRepository.GetUserPortfolio(appUser);
 
